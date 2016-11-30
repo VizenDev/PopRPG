@@ -28,17 +28,41 @@ namespace PopRPG
                 .Parameter("text", ParameterType.Unparsed)
                 .Do(async (e) =>
                {
+                   string enemy = "";
                    string location = "rpg/PopRPG/" + e.User.Id + ".txt";
+                   var param = e.GetArg("text");
+                   StringBuilder startInv = new StringBuilder();
+                   StringBuilder stats = new StringBuilder();
                    if (!File.Exists(location))
                    {
-                       Message message = await e.Channel.SendMessage("Welcome, " + e.User.Mention + "! PopRPG is a little side project, but I hope you will enjoy it. For instructions, type: **```*explain poprpg```**");
-                       StringBuilder sb = new StringBuilder();
-                       sb.AppendLine("Weapon: Potato Sword[+1]");
-                       sb.AppendLine("Armor: Potato Armor[+0.5]");
-                       sb.AppendLine("XP:0");
-                       sb.AppendLine("Level: 1");
-                       sb.AppendLine("20/20");
-                       writeFile(location, sb.ToString());
+                       Message message = await e.Channel.SendMessage("Welcome, " + e.User.Mention + "! PopRPG is a little side project, but I hope you will enjoy it. For instructions, type: **`*explain poprpg`**");
+                       startInv.AppendLine("Weapon: Potato Sword[+1]");
+                       startInv.AppendLine("Armor: Potato Armor[+0.5]");
+                       startInv.AppendLine("XP: 0");
+                       startInv.AppendLine("Level: 1");
+                       startInv.AppendLine("HP: 20/20");
+                       writeFile(location, startInv.ToString());
+                   }
+                   else if (File.Exists(location))
+                   {
+                       if (param == "stats")
+                       {
+                           stats.AppendLine(readLine(location, 1));
+                           stats.AppendLine(readLine(location, 2));
+                           stats.AppendLine(readLine(location, 3));
+                           stats.AppendLine(readLine(location, 4));
+                           stats.AppendLine(readLine(location, 5));
+                           Message message2 = await e.Channel.SendMessage(stats.ToString());
+                           Message message3 = await e.Channel.SendMessage(startInv.ToString());
+                       }
+                       if (param == "attack" && enemy == "empty")
+                       {
+
+                       }
+                       if (param == "attack" && enemy != "empty")
+                       {
+
+                       }
                    }
                });
             });
