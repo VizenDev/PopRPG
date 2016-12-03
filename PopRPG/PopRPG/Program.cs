@@ -23,7 +23,7 @@ namespace PopRPG
         {
             client = new DiscordClient(c =>
             {
-                c.AppName = "Masato Bot";
+                c.AppName = "PopRPG";
                 c.LogLevel = LogSeverity.Error;
                 c.LogHandler = Log;
             });
@@ -34,7 +34,7 @@ namespace PopRPG
                 Console.Title = string.Format($"Currently connected as a {"BOT"}.");
                 client.UsingCommands(c =>
                 {
-                    c.PrefixChar = '*';
+                    c.PrefixChar = '.';
                     c.AllowMentionPrefix = false;
                     c.IsSelfBot = false;
                     c.HelpMode = HelpMode.Public;
