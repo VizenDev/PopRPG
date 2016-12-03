@@ -17,8 +17,9 @@ namespace PopRPG
         private DiscordClient client;
         private ModuleManager mod;
         private RuntimeEnvironment re;
-        private Random rnd = new Random();
-        private DataManager dataManager = new DataManagerText();
+        private static Random rnd = new Random();
+        private DataManager dataManager = new DataManagerText(rnd);
+        private Player player;
 
         void IModule.Install(ModuleManager manager)
         {
@@ -31,7 +32,7 @@ namespace PopRPG
                 .Parameter("text", ParameterType.Unparsed)
                 .Do(async (e) =>
                 {
-                    Player player = dataManager.GetPlayer(e.User.Id);
+                    player = player ?? dataManager.GetPlayer(e.User.Id);
                     if (player.IsFirstTimePlaying)
                     {
                         await SendWelcomeMessage(e);
@@ -39,106 +40,70 @@ namespace PopRPG
                     else
                     {
                         var param = e.GetArg("text");
-                        string enemy = "";
                         if (param == "stats")
                         {
                             await SendStatsMessage(e, player);
                         }
-                        if (param == "attack" && enemy == "empty")
+                        else if (param == "enterDungeon")
                         {
-
+                            EnterDungeon(e, player);
                         }
-                        if (param == "attack" && enemy != "empty")
+                        else if (param == "attack")
                         {
+                            if (player.IsInDungeon())
+                            {
+                                Monster m = player.CurrentDungeon.GetRandomMonster();
+                                if (m.Equals(player.CurrentDungeon.Boss))
+                                {
+                                    await e.Channel.SendMessage("The boss of this dungeon has appeared! Defeat "+ m.Name + " to clear the dungeon!");
+                                    //enter fight command
+                                    player.AddExp(player.CurrentDungeon.RewardExp);
+                                    dataManager.SetPlayer(e.User.Id, player);
+                                    await e.Channel.SendMessage("Congratulations! You have cleared this dungeon and received "+ player.CurrentDungeon.RewardExp +" exp as reward!");
+                                    //self.cs shouldn't have an instance of player. It should 
+                                    //have an instance of a service of players, which would call the dataaccess
+                                    //to modify the data file
+                                }
+                            }
+                            else
+                            {
+                                await e.Channel.SendMessage("Enter a dungeon to use this command");
+                            }
+                        }
+                        else if (param == "search")
+                        {
+                            if (player.IsInDungeon())
+                            {
 
+                            }
+                            else
+                            {
+                                await e.Channel.SendMessage("Enter a dungeon to use this command");
+                            }
                         }
                     }
                 });
             });
         }
 
+        private async void EnterDungeon(CommandEventArgs e, Player player)
+        {
+            Dungeon dungeon = dataManager.GetRandomDungeonInPlayerRange(player);
+            player.CurrentDungeon = dungeon;
+            await e.Channel.SendMessage("Welcome " + player.Name + 
+                " to the " + dungeon.Name);
+        }
+
         private async Task SendStatsMessage(CommandEventArgs e, Player player)
         {
-            Message message = await e.Channel.SendMessage(player.ToString());
+            await e.Channel.SendMessage(player.ToString());
         }
 
         private async Task SendWelcomeMessage(CommandEventArgs e)
         {
-            Message message = await e.Channel.SendMessage("Welcome, " + 
+            await e.Channel.SendMessage("Welcome, " + 
                 e.User.Mention + 
                 "! PopRPG is a little side project, but I hope you will enjoy it. For instructions, type: **`*explain poprpg`**");
         }
-
-        /*void IModule.Install(ModuleManager manager)
-        {
-            mod = manager;
-            client = manager.Client;
-
-            manager.CreateCommands("", c =>
-            {
-                c.CreateCommand("poprpg").Alias("poprpg", "rpg")
-                .Parameter("text", ParameterType.Unparsed)
-                .Do(async (e) =>
-               {
-                   string enemy = "";
-                   string location = "rpg/PopRPG/" + e.User.Id + ".txt";
-                   var param = e.GetArg("text");
-                   StringBuilder startInv = new StringBuilder();
-                   StringBuilder stats = new StringBuilder();
-                   if (!File.Exists(location))
-                   {
-                       Message message = await e.Channel.SendMessage("Welcome, " + e.User.Mention + "! PopRPG is a little side project, but I hope you will enjoy it. For instructions, type: **`*explain poprpg`**");
-                       startInv.AppendLine("Weapon: Potato Sword[+1]");
-                       startInv.AppendLine("Armor: Potato Armor[+0.5]");
-                       startInv.AppendLine("XP: 0");
-                       startInv.AppendLine("Level: 1");
-                       startInv.AppendLine("HP: 20/20");
-                       writeFile(location, startInv.ToString());
-                   }
-                   else if (File.Exists(location))
-                   {
-                       if (param == "stats")
-                       {
-                           stats.AppendLine(readLine(location, 1));
-                           stats.AppendLine(readLine(location, 2));
-                           stats.AppendLine(readLine(location, 3));
-                           stats.AppendLine(readLine(location, 4));
-                           stats.AppendLine(readLine(location, 5));
-                           Message message2 = await e.Channel.SendMessage(stats.ToString());
-                       }
-                       if (param == "attack" && enemy == "empty")
-                       {
-
-                       }
-                       if (param == "attack" && enemy != "empty")
-                       {
-
-                       }
-                   }
-               });
-            });
-        }
-        private string readLine(string fileName, int lineNumber)
-        {
-            using (Stream stream = File.Open($"{fileName}", FileMode.Open))
-            {
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    string line = null;
-                    for (int i = 0; i < lineNumber; ++i)
-                    {
-                        line = reader.ReadLine();
-                    }
-                    return line;
-                }
-            }
-        }
-
-        private void writeFile(string fileName, string text)
-        {
-            StreamWriter sWrite = new StreamWriter($"{fileName}");
-            sWrite.Write(text);
-            sWrite.Close();
-        }*/
     }
 }

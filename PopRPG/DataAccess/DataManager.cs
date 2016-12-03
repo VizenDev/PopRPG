@@ -9,6 +9,9 @@ namespace DataAccess
 {
     public interface DataManager
     {
+        List<Dungeon> Dungeons { get; }
+        Dungeon GetRandomDungeonInPlayerRange(Player p);
         Player GetPlayer(ulong userId);
+        void SetPlayer(ulong userId, Player player);
     }
 }

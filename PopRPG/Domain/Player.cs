@@ -6,32 +6,33 @@ using System.Threading.Tasks;
 
 namespace Domain
 {
-    public class Player
+    public class Player : Fighter
     {
 
         public Player()
         {
         }
-        public bool IsFirstTimePlaying { get; set; }
-        public int Level { get; set; }
-        public int XP { get; set; }
-        public double HP { get; set; }
-        public string Armor { get; set; }
-        public string Weapon { get; set; }
-
-        public override string ToString()
+        public Dungeon CurrentDungeon { get; set; }
+        public bool IsInDungeon()
         {
-            string ret = "Weapon: "+Weapon +"\n"
-                + "Armor: " + Armor + "\n"
-                + "XP: " + XP + "\n"
-                + "Level: " + Level + "\n"
-                + "HP: " + HP + "/" + MaxHpAtMyLevel(Level);
-            return ret;
+            return CurrentDungeon != null;
+        }
+        public bool IsFirstTimePlaying { get; set; }
+        public void AddExp(int exp)
+        {
+            XP += exp;
         }
 
-        private double MaxHpAtMyLevel(int level)
+        public static Player NewPlayerInstance()
         {
-            return 20;
+            Player p = new Player();
+            p.Name = "Potato player";
+            p.Weapon = "Potato Sword[+1]";
+            p.Armor = "Potato Armor[+0.5]";
+            p.XP = 0;
+            p.Level = 1;
+            p.HP = 20;
+            return p;
         }
     }
 }
