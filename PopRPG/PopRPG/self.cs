@@ -53,7 +53,6 @@ namespace PopRPG
                            stats.AppendLine(readLine(location, 4));
                            stats.AppendLine(readLine(location, 5));
                            Message message2 = await e.Channel.SendMessage(stats.ToString());
-                           Message message3 = await e.Channel.SendMessage(startInv.ToString());
                        }
                        if (param == "attack" && enemy == "empty")
                        {
