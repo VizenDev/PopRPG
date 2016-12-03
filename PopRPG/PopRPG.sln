@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PopRPG", "PopRPG\PopRPG.csproj", "{FE81A67D-AC5F-4257-938D-D5AA1C205C8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "DataAccess\DataAccess.csproj", "{6D62992D-5CDD-474F-9EE5-D43094B8234B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{D7ED39A6-8EEC-4895-A96D-CF99B4A8DB4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{FE81A67D-AC5F-4257-938D-D5AA1C205C8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE81A67D-AC5F-4257-938D-D5AA1C205C8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE81A67D-AC5F-4257-938D-D5AA1C205C8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D62992D-5CDD-474F-9EE5-D43094B8234B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D62992D-5CDD-474F-9EE5-D43094B8234B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D62992D-5CDD-474F-9EE5-D43094B8234B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D62992D-5CDD-474F-9EE5-D43094B8234B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7ED39A6-8EEC-4895-A96D-CF99B4A8DB4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7ED39A6-8EEC-4895-A96D-CF99B4A8DB4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7ED39A6-8EEC-4895-A96D-CF99B4A8DB4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7ED39A6-8EEC-4895-A96D-CF99B4A8DB4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
