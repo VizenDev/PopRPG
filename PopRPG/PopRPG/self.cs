@@ -32,7 +32,7 @@ namespace PopRPG
                 .Do(async (e) =>
                 {
                     Player player = dataManager.GetPlayer(e.User.Id);
-                    if (player.IsFirstTimePlaying())
+                    if (player.IsFirstTimePlaying)
                     {
                         await SendWelcomeMessage(e);
                     }

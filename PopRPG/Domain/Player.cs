@@ -8,24 +8,14 @@ namespace Domain
 {
     public class Player
     {
-        private bool firstTimePlaying;
 
         public Player()
         {
-            firstTimePlaying = true;
         }
-        public bool IsFirstTimePlaying()
-        {
-            if (firstTimePlaying)
-            {
-                firstTimePlaying = false;
-                return true;
-            }
-            return false;
-        }
+        public bool IsFirstTimePlaying { get; set; }
         public int Level { get; set; }
-        public int Exp { get; set; }
-        public double Hp { get; set; }
+        public int XP { get; set; }
+        public double HP { get; set; }
         public string Armor { get; set; }
         public string Weapon { get; set; }
 
@@ -33,9 +23,9 @@ namespace Domain
         {
             string ret = "Weapon: "+Weapon +"\n"
                 + "Armor: " + Armor + "\n"
-                + "XP: " + Exp + "\n"
-                + "Level: " + Level
-                + "HP: " + Hp + "/" + MaxHpAtMyLevel(Level);
+                + "XP: " + XP + "\n"
+                + "Level: " + Level + "\n"
+                + "HP: " + HP + "/" + MaxHpAtMyLevel(Level);
             return ret;
         }
 
