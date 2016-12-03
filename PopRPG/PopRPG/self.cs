@@ -14,7 +14,6 @@ namespace PopRPG
     {
         private DiscordClient client;
         private ModuleManager mod;
-        private RuntimeEnvironment re;
         private Random rnd = new Random();
 
         void IModule.Install(ModuleManager manager)
@@ -24,6 +23,16 @@ namespace PopRPG
 
             manager.CreateCommands("", c =>
             {
+                c.CreateCommand("explain")
+                .Parameter("command", ParameterType.Optional)
+                .Do(async (e) =>
+                {
+                    if (e.GetArg("command") == "")
+                        await e.Channel.SendMessage("The correct usage for this command would be ```.explain [command to explain]```(without the brackets of course)");
+                    else if (e.GetArg("command") == "rpg")
+                        await e.Channel.SendMessage("potato");
+                });
+
                 c.CreateCommand("poprpg").Alias("poprpg", "rpg")
                 .Parameter("text", ParameterType.Unparsed)
                 .Do(async (e) =>
@@ -35,7 +44,7 @@ namespace PopRPG
                    StringBuilder stats = new StringBuilder();
                    if (!File.Exists(location))
                    {
-                       Message message = await e.Channel.SendMessage("Welcome, " + e.User.Mention + "! PopRPG is a little side project, but I hope you will enjoy it. For instructions, type: **`*explain poprpg`**");
+                       Message message = await e.Channel.SendMessage("Welcome, " + e.User.Mention + "! PopRPG is a little side project, but I hope you will enjoy it. For instructions, type: **`.explain poprpg`**");
                        startInv.AppendLine("Weapon: Potato Sword[+1]");
                        startInv.AppendLine("Armor: Potato Armor[+0.5]");
                        startInv.AppendLine("XP: 0");
@@ -52,7 +61,7 @@ namespace PopRPG
                            stats.AppendLine(readLine(location, 3));
                            stats.AppendLine(readLine(location, 4));
                            stats.AppendLine(readLine(location, 5));
-                           Message message2 = await e.Channel.SendMessage(stats.ToString());
+                           Message message2 = await e.Channel.SendMessage(e.User.Mention + "\n" + stats.ToString());
                        }
                        if (param == "attack" && enemy == "empty")
                        {
