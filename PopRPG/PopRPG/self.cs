@@ -1,6 +1,8 @@
-﻿using Discord;
+﻿using DataAccess;
+using Discord;
 using Discord.Commands;
 using Discord.Modules;
+using Domain;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -16,8 +18,58 @@ namespace PopRPG
         private ModuleManager mod;
         private RuntimeEnvironment re;
         private Random rnd = new Random();
+        private DataManager dataManager = new DataManagerText();
 
         void IModule.Install(ModuleManager manager)
+        {
+            mod = manager;
+            client = manager.Client;
+
+            manager.CreateCommands("", c =>
+            {
+                c.CreateCommand("poprpg").Alias("poprpg", "rpg")
+                .Parameter("text", ParameterType.Unparsed)
+                .Do(async (e) =>
+                {
+                    Player player = dataManager.GetPlayer(e.User.Id);
+                    if (player.IsFirstTimePlaying())
+                    {
+                        await SendWelcomeMessage(e);
+                    }
+                    else
+                    {
+                        var param = e.GetArg("text");
+                        string enemy = "";
+                        if (param == "stats")
+                        {
+                            await SendStatsMessage(e, player);
+                        }
+                        if (param == "attack" && enemy == "empty")
+                        {
+
+                        }
+                        if (param == "attack" && enemy != "empty")
+                        {
+
+                        }
+                    }
+                });
+            });
+        }
+
+        private async Task SendStatsMessage(CommandEventArgs e, Player player)
+        {
+            Message message = await e.Channel.SendMessage(player.ToString());
+        }
+
+        private async Task SendWelcomeMessage(CommandEventArgs e)
+        {
+            Message message = await e.Channel.SendMessage("Welcome, " + 
+                e.User.Mention + 
+                "! PopRPG is a little side project, but I hope you will enjoy it. For instructions, type: **`*explain poprpg`**");
+        }
+
+        /*void IModule.Install(ModuleManager manager)
         {
             mod = manager;
             client = manager.Client;
@@ -87,6 +139,6 @@ namespace PopRPG
             StreamWriter sWrite = new StreamWriter($"{fileName}");
             sWrite.Write(text);
             sWrite.Close();
-        }
+        }*/
     }
 }

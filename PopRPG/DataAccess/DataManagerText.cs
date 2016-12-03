@@ -20,7 +20,8 @@ namespace DataAccess
             string path = location + userId + extension;
             if (!File.Exists(path))
             {
-                return new Player();
+                WritePlayerFile(path);
+                return GetPlayer(userId);
             }
             else
             {
@@ -33,6 +34,18 @@ namespace DataAccess
                 LoadHp(player, sr);
                 return player;
             }
+        }
+        private void WritePlayerFile(string fileName)
+        {
+            StreamWriter sWrite = new StreamWriter($"{fileName}");
+            StringBuilder text = new StringBuilder(); ;
+            text.AppendLine("Weapon: Potato Sword[+1]");
+            text.AppendLine("Armor: Potato Armor[+0.5]");
+            text.AppendLine("XP: 0");
+            text.AppendLine("Level: 1");
+            text.AppendLine("HP: 20/20");
+            sWrite.Write(text);
+            sWrite.Close();
         }
 
         private void LoadWeapon(Player player, StreamReader sr)
