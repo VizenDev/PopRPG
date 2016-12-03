@@ -31,7 +31,7 @@ namespace Domain
 
         private double MaxHpAtMyLevel(int level)
         {
-            return 20;
+            return 10 * level;
         }
     }
 }
