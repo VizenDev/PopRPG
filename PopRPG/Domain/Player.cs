@@ -11,6 +11,7 @@ namespace Domain
 
         public Player()
         {
+
         }
         public Dungeon CurrentDungeon { get; set; }
         public bool IsInDungeon()
@@ -31,7 +32,7 @@ namespace Domain
             p.Armor = "Potato Armor[+0.5]";
             p.XP = 0;
             p.Level = 1;
-            p.HP = 20;
+            p.HP = 10;
             return p;
         }
     }

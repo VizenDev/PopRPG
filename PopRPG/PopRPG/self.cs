@@ -23,13 +23,15 @@ namespace PopRPG
 
         void IModule.Install(ModuleManager manager)
         {
+
             mod = manager;
             client = manager.Client;
+
+            
 
             manager.CreateCommands("", c =>
             {
                 c.CreateCommand("poprpg").Alias("poprpg", "rpg")
-                .Parameter("text", ParameterType.Unparsed)
                 .Do(async (e) =>
                 {
                     player = player ?? dataManager.GetPlayer(e.User.Id);
@@ -39,7 +41,9 @@ namespace PopRPG
                     }
                     else
                     {
-                        var param = e.GetArg("text");
+                        //do nothing
+                        #region old code
+                        /*var param = e.GetArg("text");
                         if (param == "stats")
                         {
                             await SendStatsMessage(e, player);
@@ -80,8 +84,51 @@ namespace PopRPG
                             {
                                 await e.Channel.SendMessage("Enter a dungeon to use this command");
                             }
+                        }*/
+                        #endregion
+                    }
+                });
+                c.CreateCommand("stats").Do(async (e) =>
+                {
+                    await SendStatsMessage(e, player);
+                    Console.WriteLine($"{e.User.Name} performed the **stats** command.");
+                });
+                c.CreateCommand("enterDungeon").Do((e) =>
+                {
+                    EnterDungeon(e, player);
+                    Console.WriteLine($"{e.User.Name} performed the **enterDungeon** command.");
+                });
+                c.CreateCommand("attack").Do(async (e) => 
+                {
+                    if (player.IsInDungeon())
+                    {
+                        Monster m = player.CurrentDungeon.GetRandomMonster();
+                        if (m.Equals(player.CurrentDungeon.Boss))
+                        {
+                            await e.Channel.SendMessage("The boss of this dungeon has appeared! Defeat " + m.Name + " to clear the dungeon!");
+                            //enter fight command
+                            player.AddExp(player.CurrentDungeon.RewardExp);
+                            dataManager.SetPlayer(e.User.Id, player);
+                            await e.Channel.SendMessage("Congratulations! You have cleared this dungeon and received " + player.CurrentDungeon.RewardExp + " exp as reward!");
+                            //self.cs shouldn't have an instance of player. It should 
+                            //have an instance of a service of players, which would call the dataaccess
+                            //to modify the data file
                         }
                     }
+                    else
+                        await e.Channel.SendMessage("Enter a dungeon to use this command");
+
+                    Console.WriteLine($"{e.User.Name} performed the **attack** command.");
+                });
+                c.CreateCommand("search").Do(async (e) =>
+                {
+                    if (player.IsInDungeon())
+                    {
+                    }
+                    else
+                        await e.Channel.SendMessage("Enter a dungeon to use this command");
+
+                    Console.WriteLine($"{e.User.Name} performed the **search** command.");
                 });
             });
         }
