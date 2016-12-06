@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using DataAccess;
+using Discord;
 using Discord.Commands;
 using Discord.Modules;
 using System;

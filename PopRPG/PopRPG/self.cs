@@ -14,13 +14,18 @@ namespace PopRPG
 {
     internal class self : IModule
     {
+        private readonly static double MIN_DAMAGE_TAKEN_RUNNING = 1.5;
+        private readonly static double MAX_DAMAGE_TAKEN_RUNNING = 2.5;
+
         private DiscordClient client;
         private ModuleManager mod;
         private RuntimeEnvironment re;
         private static Random rnd = new Random();
-        private DataManager dataManager = new DataManagerText(rnd);
+        private DataManager dataManager = new DataManagerSerialization(rnd);
         private Player player;
-        private Dungeon dg;
+        //self.cs shouldn't have an instance of player. It should 
+        //have an instance of a service of players, which would call the dataaccess
+        //to modify the data file
 
         void IModule.Install(ModuleManager manager)
         {
@@ -39,10 +44,12 @@ namespace PopRPG
                     if (player.IsFirstTimePlaying)
                     {
                         await SendWelcomeMessage(e);
+                        player.IsFirstTimePlaying = false;
+                        dataManager.SetPlayer(e.User.Id, player);
                     }
                     else
                     {
-                        await e.Channel.SendMessage($"Oooooh. Welcome back{player.Name}. I am sure you know what to do.");
+                        await e.Channel.SendMessage($"Oooooh. Welcome back {player.Name}. I am sure you know what to do.");
                         #region old code
                         /*var param = e.GetArg("text");
                         if (param == "stats")
@@ -91,17 +98,16 @@ namespace PopRPG
                 });
                 c.CreateCommand("stats").Do(async (e) =>
                 {
-                    await SendStatsMessage(e, player);
+                    await SendStatsMessage(e);
                     Console.WriteLine($"{e.User.Name} performed the **stats** command.");
                 });
                 c.CreateCommand("explore").Do((e) =>
                 {
-                    player = player ?? dataManager.GetPlayer(e.User.Id);
-                    if (player.CurrentDungeon == null)
+                    if (player.State == Player.NOT_IN_DUNGEON_STATE)
                     {
-                        EnterDungeon(e, player);
+                        EnterDungeon(e);
                     }
-                    else if (player.CurrentDungeon != null)
+                    else
                     {
                         e.Channel.SendMessage("You are already in a dungeon");
                     }
@@ -109,64 +115,66 @@ namespace PopRPG
                 });
                 c.CreateCommand("attack").Do(async (e) => 
                 {
-                    if (player.IsInDungeon())
+                    if (player.State == Player.IN_DUNGEON_STATE)
                     {
-                        Monster m = player.CurrentDungeon.GetRandomMonster();
-                        if (m.Equals(player.CurrentDungeon.Boss))
-                        {
-                            await e.Channel.SendMessage("The boss of this dungeon has appeared! Defeat " + m.Name + " to clear the dungeon!");
-                            //enter fight command
-                            player.AddExp(player.CurrentDungeon.RewardExp);
-                            dataManager.SetPlayer(e.User.Id, player);
-                            await e.Channel.SendMessage("Congratulations! You have cleared this dungeon and received " + player.CurrentDungeon.RewardExp + " exp as reward!");
-                            player.CurrentDungeon = null;
-                            //self.cs shouldn't have an instance of player. It should 
-                            //have an instance of a service of players, which would call the dataaccess
-                            //to modify the data file
-                        }
-                        else if (!m.Equals(player.CurrentDungeon.Boss))
-                        {
-                            await e.Channel.SendMessage($"The enemy of this dungeon has appeared! Defeat {m.Name} to clear the dungeon!");
-                            if (player.CurrentDungeon.RewardItem == null)
-                            {
-                                await e.Channel.SendMessage("Congratulations! You have cleared this dungeon and received " + player.CurrentDungeon.RewardExp + " exp as reward!");
-                            }
-                            else if (player.CurrentDungeon.RewardItem != null)
-                            {
-                                player.AddItem(player.CurrentDungeon.RewardItem);
-                                await e.Channel.SendMessage("Congratulations! You have cleared this dungeon and received a " + player.CurrentDungeon.RewardItem + " and " + player.CurrentDungeon.RewardExp +" exp as reward!");
-                            }
-                            player.AddExp(player.CurrentDungeon.RewardExp);
-                            dataManager.SetPlayer(e.User.Id, player);
-                            player.CurrentDungeon = null;
-                        }
+                        Monster m = await FindMonster(e);
+                        await FightMonster(e, m);
+                    }
+                    else if(player.State == Player.IN_FIGHT_STATE)
+                    {
+                        await e.Channel.SendMessage("You're already in a fight");
                     }
                     else
+                    {
                         await e.Channel.SendMessage("Enter a dungeon to use this command");
+                    }
 
                     Console.WriteLine($"{e.User.Name} performed the **attack** command.");
                 });
                 c.CreateCommand("run").Do(async (e) =>
                 {
-                    double newHP = rnd.NextDouble() * (1.5 - 2.5) + 1.5;
+                    double newHP = HPTakenAfterRunningAway();
                     var takenHP = Math.Abs(newHP).ToString().Substring(0, 3);
-                    if (player.IsInDungeon())
+                    if (player.State == Player.IN_DUNGEON_STATE || player.State == Player.IN_FIGHT_STATE)
                     {
                         await e.Channel.SendMessage("You decided to run away. Doing so got you hit with " + takenHP + " damage.");
                         player.RemoveHP(Convert.ToDouble(takenHP));
                         dataManager.SetPlayer(e.User.Id, player);
                         player.CurrentDungeon = null;
-                        await e.Channel.SendMessage($"Your HP is now **{player.HP}/{player.hp(player.Level)}**");
+                        player.State = Player.NOT_IN_DUNGEON_STATE;
+                        await e.Channel.SendMessage($"Your HP is now **{player.HP}/{player.MaxHp(player.Level)}**");
                     }
-                    else if (!player.IsInDungeon())
+                    else 
                     {
                         await e.Channel.SendMessage("You can't run away from a dungeon if you aren't even in one.");
                     }
                 });
                 c.CreateCommand("search").Do(async (e) =>
                 {
-                    if (player.IsInDungeon())
+                    if (player.State == Player.IN_DUNGEON_STATE)
                     {
+                        if (player.CurrentDungeon.IsCleared)
+                        {
+                            double chanceToFindItem = player.CurrentDungeon.ChanceToFindItem;
+                            double chanceToFindMonster = player.CurrentDungeon.ChanceToFindMonster;
+                            int result = rnd.Next(1, 100);
+                            if (result <= chanceToFindItem)
+                            {
+                                await FindItem(e);
+                            }
+                            else if (result <= chanceToFindMonster)
+                            {
+                                await FindMonster(e);
+                            }
+                            else
+                            {
+                                await e.Channel.SendMessage("You didn't find anything");
+                            }
+                        }
+                        else
+                        {
+                            await e.Channel.SendMessage("Clear the dungeon to use this command");
+                        }
                     }
                     else
                         await e.Channel.SendMessage("Enter a dungeon to use this command");
@@ -195,7 +203,7 @@ namespace PopRPG
                         {
                             player.AddLevel(1);
                             player.RemoveExp(500);
-                            player.AddHP(player.hp(player.Level));
+                            player.AddHP(player.MaxHp(player.Level));
                             dataManager.SetPlayer(e.User.Id, player);
                             await e.Channel.SendMessage($"Woo Hoo! You are now at level **{player.Level}.**");
                         }
@@ -208,16 +216,70 @@ namespace PopRPG
                 });
             });
         }
+        //This could change if the fight doesn't end in one turn
+        private async Task FightMonster(CommandEventArgs e, Monster m)
+        {
+            if (player.CurrentDungeon.Bosses.Contains(m))
+            {
+                await e.Channel.SendMessage($"Congratulations! You have cleared this dungeon and received {player.CurrentDungeon.RewardExp} exp as reward!");
+            }
+            else
+            {
+                if (player.CurrentDungeon.RewardItem == null)
+                {
+                    await e.Channel.SendMessage("Congratulations! You have cleared this dungeon and received " + player.CurrentDungeon.RewardExp + " exp as reward!");
+                }
+                else
+                {
+                    player.AddItem(player.CurrentDungeon.RewardItem);
+                    await e.Channel.SendMessage("Congratulations! You have cleared this dungeon and received a " + player.CurrentDungeon.RewardItem + " and " + player.CurrentDungeon.RewardExp + " exp as reward!");
+                }
+            }
+            player.AddExp(player.CurrentDungeon.RewardExp);
+            dataManager.SetPlayer(e.User.Id, player);
+            player.State = Player.IN_DUNGEON_STATE;
+        }
+        private async Task FindItem(CommandEventArgs e)
+        {
+            string drop = player.CurrentDungeon.GetRandomDrop();
+            await e.Channel.SendMessage($"You found {drop}");
+            player.AddItem(drop);
+        }
+        private async Task<Monster> FindMonster(CommandEventArgs e)
+        {
+            player.State = Player.IN_FIGHT_STATE;
+            Monster m = player.CurrentDungeon.GetRandomMonster();
+            if (player.CurrentDungeon.Bosses.Contains(m))
+            {
+                await e.Channel.SendMessage("The boss of this dungeon has appeared! Defeat " + m.Name + " to clear the dungeon!");
+                
+            }
+            else
+            {
+                await e.Channel.SendMessage($"The enemy of this dungeon has appeared! Defeat {m.Name} to clear the dungeon!");
+                
+            }
+            return m;
+        }
 
-        private async void EnterDungeon(CommandEventArgs e, Player player)
+        private static double HPTakenAfterRunningAway()
+        {
+            return rnd.NextDouble() * 
+                (MAX_DAMAGE_TAKEN_RUNNING - MIN_DAMAGE_TAKEN_RUNNING) 
+                + MIN_DAMAGE_TAKEN_RUNNING;
+        }
+
+        private async void EnterDungeon(CommandEventArgs e)
         {
             Dungeon dungeon = dataManager.GetRandomDungeonInPlayerRange(player);
             player.CurrentDungeon = dungeon;
+            player.State = Player.IN_DUNGEON_STATE;
+            dataManager.SetPlayer(e.User.Id, player);
             await e.Channel.SendMessage("Welcome " + player.Name.Trim() + 
                 " to the " + dungeon.Name);
         }
 
-        private async Task SendStatsMessage(CommandEventArgs e, Player player)
+        private async Task SendStatsMessage(CommandEventArgs e)
         {
             await e.Channel.SendMessage(e.User.Mention + "```" + player.ToString() + "```");
         }
