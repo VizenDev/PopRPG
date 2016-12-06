@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataManager.cs" />
+    <Compile Include="DataManagerSerialization.cs" />
     <Compile Include="DataManagerText.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
