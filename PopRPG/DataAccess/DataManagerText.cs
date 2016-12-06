@@ -25,7 +25,10 @@ namespace DataAccess
             get
             {
                 List<Dungeon> dungeons = new List<Dungeon>();
-                dungeons.Add(new Dungeon(random) { Name = "Test dungeon", RewardExp = 500 });
+                dungeons.Add(new Dungeon(random) { Name = "Potato dungeon", RewardExp = 25, RewardItem = "Healing Potion" });
+                dungeons.Add(new Dungeon(random) { Name = "Iron dungeon", RewardExp = 100 });
+                dungeons.Add(new Dungeon(random) { Name = "Steel dungeon", RewardExp = 150 });
+                dungeons.Add(new Dungeon(random) { Name = "The Secret Pits", RewardExp = 500 });
                 return dungeons;
             }
         }
@@ -60,6 +63,7 @@ namespace DataAccess
                 LoadName(player, sr);
                 LoadWeapon(player, sr);
                 LoadArmor(player, sr);
+                LoadItems(player, sr);
                 LoadExp(player, sr);
                 LoadLevel(player, sr);
                 LoadHp(player, sr);
@@ -89,6 +93,10 @@ namespace DataAccess
         private void LoadArmor(Player player, StreamReader sr)
         {
             LoadStringValue(player, sr, "Armor");
+        }
+        private void LoadItems(Player player, StreamReader sr)
+        {
+            LoadStringValue(player, sr, "Items");
         }
         private void LoadExp(Player player, StreamReader sr)
         {
