@@ -14,20 +14,23 @@ namespace Domain
         public double HP { get; set; }
         public string Armor { get; set; }
         public string Weapon { get; set; }
+        public string Items { get; set; }
         public override string ToString()
         {
-            string ret = "Name: "+ Name + "\r\n"
-                + "Weapon: " + Weapon + "\r\n"
-                + "Armor: " + Armor + "\r\n"
-                + "XP: " + XP + "\r\n"
-                + "Level: " + Level + "\r\n"
-                + "HP: " + HP + "/" + MaxHpAtMyLevel(Level);
-            return ret;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Name: " + Name);
+            sb.AppendLine("Weapon: " + Weapon);
+            sb.AppendLine("Armor: " + Armor);
+            sb.AppendLine("Items: " + Items);
+            sb.AppendLine("XP: " + XP);
+            sb.AppendLine("Level: " + Level);
+            sb.AppendLine("HP: " + HP + "/" + hp(Level));
+            return sb.ToString();
         }
 
-        private double MaxHpAtMyLevel(int level)
+        public double hp(int level)
         {
-            return 10;
+            return 10 * level;
         }
     }
 }
